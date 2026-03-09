@@ -1,0 +1,14 @@
+{
+  "name": "stop-10-multiplayer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Real-time stop-at-10-seconds multiplayer game",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  }
+}
