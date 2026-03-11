@@ -45,6 +45,13 @@ let multiStartAt = 0;
 let isCounting = false;
 
 let audioCtx = null;
+const ROAST_LINES = [
+  "Timer saw you coming and ran away.",
+  "That stop was sponsored by chaos.",
+  "Were you aiming for 10 or just vibes?",
+  "Precision has left the chat.",
+  "That was not a pause, that was a guess."
+];
 
 function formatSeconds(value) {
   return Number(value).toFixed(DECIMALS);
@@ -92,6 +99,25 @@ function playStartSound() {
 
 function playStopSound() {
   playTone({ frequency: 760, duration: 0.1, type: "triangle", volume: 0.035 });
+}
+
+function playPerfectSound() {
+  playTone({ frequency: 740, duration: 0.08, type: "sine", volume: 0.04 });
+  setTimeout(() => {
+    playTone({ frequency: 980, duration: 0.12, type: "triangle", volume: 0.045 });
+  }, 80);
+}
+
+function playCloseSound() {
+  playTone({ frequency: 610, duration: 0.09, type: "triangle", volume: 0.03 });
+}
+
+function playRoastSound() {
+  playTone({ frequency: 230, duration: 0.16, type: "sawtooth", volume: 0.022 });
+}
+
+function randomRoast() {
+  return ROAST_LINES[Math.floor(Math.random() * ROAST_LINES.length)];
 }
 
 function setFeedback(message, mood = "") {
@@ -190,10 +216,22 @@ function stopSingleGame() {
   saveSinglePausedTimes();
   renderSingleStats();
   renderSingleLeaderboard();
-  setFeedback(`Paused at ${formatSeconds(currentElapsed)}s.`);
+  const delta = Math.abs(currentElapsed - TARGET_SECONDS);
+  if (delta <= 0.02) {
+    setFeedback(`Paused at ${formatSeconds(currentElapsed)}s. Unreal precision.`, "good");
+    playPerfectSound();
+  } else if (delta <= 0.12) {
+    setFeedback(`Paused at ${formatSeconds(currentElapsed)}s. So close.`, "warn");
+    playCloseSound();
+  } else if (delta >= 0.5) {
+    setFeedback(`Paused at ${formatSeconds(currentElapsed)}s. ${randomRoast()}`, "bad");
+    playRoastSound();
+  } else {
+    setFeedback(`Paused at ${formatSeconds(currentElapsed)}s.`);
+    playStopSound();
+  }
   singleStartBtn.disabled = false;
   singleStopBtn.disabled = true;
-  playStopSound();
 }
 
 function resetSingleGame() {
@@ -321,18 +359,32 @@ function ensureSocket() {
       multiStartAt = serverStartAt;
       multiStopBtn.disabled = false;
       isCounting = true;
+      playTone({ frequency: 660, duration: 0.06, type: "triangle", volume: 0.03 });
+      setTimeout(() => playTone({ frequency: 700, duration: 0.06, type: "triangle", volume: 0.03 }), 170);
+      setTimeout(() => playTone({ frequency: 760, duration: 0.06, type: "triangle", volume: 0.03 }), 340);
       playStartSound();
       setFeedback("Round live. Hit STOP.");
       tickMultiTimer();
     }, waitMs);
   });
 
-  socket.on("attemptAccepted", ({ time }) => {
+  socket.on("attemptAccepted", ({ time, delta }) => {
     if (mode !== "multi") {
       return;
     }
-    setFeedback(`Paused at ${formatSeconds(time)}s.`, "good");
-    playStopSound();
+    if (delta <= 0.02) {
+      setFeedback(`Paused at ${formatSeconds(time)}s. Sharp.`, "good");
+      playPerfectSound();
+    } else if (delta <= 0.12) {
+      setFeedback(`Paused at ${formatSeconds(time)}s. Nearly there.`, "warn");
+      playCloseSound();
+    } else if (delta >= 0.5) {
+      setFeedback(`Paused at ${formatSeconds(time)}s. ${randomRoast()}`, "bad");
+      playRoastSound();
+    } else {
+      setFeedback(`Paused at ${formatSeconds(time)}s.`);
+      playStopSound();
+    }
   });
 
   socket.on("roundEnded", () => {
