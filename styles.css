@@ -70,6 +70,12 @@ body {
   z-index: 1;
 }
 
+.top-user {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.7rem;
+}
+
 .game-header {
   text-align: center;
   margin-bottom: 1rem;
@@ -124,6 +130,10 @@ h1 span {
   color: var(--muted);
 }
 
+.input-wrap.compact {
+  width: min(320px, 100%);
+}
+
 .input-wrap input {
   width: 100%;
   border-radius: 12px;
@@ -165,6 +175,25 @@ h1 span {
   color: var(--muted);
 }
 
+.mode-switch {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  margin: 0 0 0.9rem;
+}
+
+.active-mode {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+}
+
+.multiplayer-panel {
+  margin-top: 0.2rem;
+}
+
+.hidden {
+  display: none !important;
+}
+
 .controls {
   display: flex;
   gap: 0.7rem;
@@ -202,6 +231,13 @@ h1 span {
   background: var(--accent);
   color: #2a0f05;
   box-shadow: 0 8px 18px rgba(255, 127, 80, 0.35);
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: none;
 }
 
 .feedback {
