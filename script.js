@@ -1,11 +1,5 @@
 const DECIMALS = 4;
 
-const LEVELS = {
-  easy: { name: "Easy" },
-  pro: { name: "Pro" },
-  insane: { name: "Insane" }
-};
-
 const socket = io();
 
 const nameInput = document.getElementById("nameInput");
@@ -24,14 +18,12 @@ const roundStatus = document.getElementById("roundStatus");
 
 const startRoundBtn = document.getElementById("startRoundBtn");
 const stopBtn = document.getElementById("stopBtn");
-const levelButtons = [...document.querySelectorAll(".level-btn")];
 
 let myPlayerId = null;
 let roomCode = null;
 let roundActive = false;
 let startAt = 0;
 let rafId = 0;
-let selectedLevel = "easy";
 let isCounting = false;
 let audioCtx = null;
 
@@ -168,9 +160,6 @@ function renderRoundScores(roundScores) {
 
 function setRoomConnected(value) {
   startRoundBtn.disabled = !value || roundActive;
-  levelButtons.forEach((btn) => {
-    btn.disabled = !value || roundActive;
-  });
 }
 
 createRoomBtn.addEventListener("click", () => {
@@ -188,7 +177,7 @@ startRoundBtn.addEventListener("click", () => {
   if (!roomCode) {
     return;
   }
-  socket.emit("startRound", { level: selectedLevel });
+  socket.emit("startRound", {});
 });
 
 stopBtn.addEventListener("click", () => {
@@ -197,17 +186,6 @@ stopBtn.addEventListener("click", () => {
   }
   stopBtn.disabled = true;
   socket.emit("stopAttempt");
-});
-
-levelButtons.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    if (roundActive) {
-      return;
-    }
-    selectedLevel = btn.dataset.level;
-    levelButtons.forEach((b) => b.classList.toggle("active", b === btn));
-    setFeedback(`Selected level: ${LEVELS[selectedLevel].name}`);
-  });
 });
 
 window.addEventListener("keydown", (event) => {
@@ -257,20 +235,14 @@ socket.on("roomState", (state) => {
     stopBtn.disabled = true;
     if (roomCode) {
       startRoundBtn.disabled = false;
-      levelButtons.forEach((btn) => {
-        btn.disabled = false;
-      });
     }
   }
 });
 
-socket.on("roundStarted", ({ startAt: serverStartAt, levelName, target }) => {
+socket.on("roundStarted", ({ startAt: serverStartAt, target }) => {
   startRoundBtn.disabled = true;
-  levelButtons.forEach((btn) => {
-    btn.disabled = true;
-  });
   renderRoundScores([]);
-  setFeedback(`New ${levelName} round. Target ${target.toFixed(DECIMALS)}s.`);
+  setFeedback(`New round. Target ${target.toFixed(DECIMALS)}s.`);
   beginRoundClock(serverStartAt);
 });
 
@@ -289,9 +261,6 @@ socket.on("roundEnded", ({ roundScores }) => {
   stopLocalTicker();
   stopBtn.disabled = true;
   startRoundBtn.disabled = false;
-  levelButtons.forEach((btn) => {
-    btn.disabled = false;
-  });
 
   renderRoundScores(roundScores);
 
